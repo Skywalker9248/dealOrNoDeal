@@ -3,83 +3,71 @@ import styled from "styled-components";
 const CaseBoardContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  padding: 15px;
-  max-width: 550px;
+  gap: 20px;
+  padding: 20px;
+  max-width: 800px;
   margin: 0 auto;
 `;
 
 const CaseBox = styled.div<{ $isSelected?: boolean; $isOpened?: boolean }>`
-  aspect-ratio: 1.1;
-  background: linear-gradient(
-    180deg,
-    #4a4a4a 0%,
-    #3a3a3a 20%,
-    #2a2a2a 50%,
-    #1a1a1a 80%,
-    #252525 100%
-  );
-  border: 2px solid #1a1a1a;
+  aspect-ratio: 1.4; /* More rectangular */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.03) 0px,
+      rgba(255, 255, 255, 0.03) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(
+      180deg,
+      #4a5a6a 0%,
+      /* Blue-ish grey top */ #2c3e50 40%,
+      /* Darker middle */ #1a2a3a 100% /* Darkest bottom */
+    );
+  border: 4px solid #c0c0c0;
   border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: 10px;
   cursor: pointer;
   position: relative;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.5);
+    inset 0 0 10px rgba(0, 0, 0, 0.8),
+    /* Inner depth */ 0 4px 6px rgba(0, 0, 0, 0.5); /* Outer drop shadow */
   transition: all 0.15s ease;
 
-  /* Top highlight edge */
+  /* Metallic Border Highlight */
   &::before {
     content: "";
     position: absolute;
-    top: 2px;
-    left: 4px;
-    right: 4px;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.15),
-      transparent
-    );
-    border-radius: 2px;
+    inset: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px; /* Slightly smaller radius than parent */
+    pointer-events: none;
   }
 
-  /* Bottom shadow edge */
+  /* Handle */
   &::after {
     content: "";
     position: absolute;
-    bottom: 2px;
-    left: 4px;
-    right: 4px;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(0, 0, 0, 0.3),
-      transparent
-    );
-    border-radius: 2px;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 10px;
+    background: linear-gradient(to bottom, #d0d0d0, #909090);
+    border-radius: 4px 4px 0 0;
+    border: 2px solid #555;
+    border-bottom: none;
+    z-index: 0;
   }
 
   &:hover {
-    background: linear-gradient(
-      180deg,
-      #555555 0%,
-      #454545 20%,
-      #353535 50%,
-      #252525 80%,
-      #303030 100%
-    );
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.15),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-      0 4px 8px rgba(0, 0, 0, 0.6);
+    transform: translateY(-2px);
+    filter: brightness(1.1);
   }
 
   &:active {
@@ -89,46 +77,63 @@ const CaseBox = styled.div<{ $isSelected?: boolean; $isOpened?: boolean }>`
   ${({ $isSelected }) =>
     $isSelected &&
     `
-    border-color: #2d5a2d;
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-      0 0 8px rgba(0, 255, 0, 0.2),
-      0 2px 4px rgba(0, 0, 0, 0.5);
+    border-color: #ffd700; /* Gold highlight for selection */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
   `}
 
   ${({ $isOpened }) =>
     $isOpened &&
     `
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: default;
-    &:hover {
-      background: linear-gradient(
-        180deg,
-        #4a4a4a 0%,
-        #3a3a3a 20%,
-        #2a2a2a 50%,
-        #1a1a1a 80%,
-        #252525 100%
-      );
-    }
+    background: #111; /* Dark interior when open */
+    border-color: #555;
+    background-image: none;
+    box-shadow: inset 0 0 20px #000;
   `}
 `;
 
+/* Latch (Left) */
+const LatchLeft = styled.div`
+  position: absolute;
+  top: 8px;
+  left: 10%;
+  width: 8px;
+  height: 12px;
+  background: linear-gradient(to bottom, #fff, #999);
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+`;
+
+/* Latch (Right) */
+const LatchRight = styled.div`
+  position: absolute;
+  top: 8px;
+  right: 10%;
+  width: 8px;
+  height: 12px;
+  background: linear-gradient(to bottom, #fff, #999);
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  z-index: 2;
+`;
+
 const CaseNumber = styled.span`
-  font-size: 1rem;
-  font-weight: 600;
-  color: #b0b0b0;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  font-family: "Arial", sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  font-family: "Arial Black", "Arial", sans-serif;
+  z-index: 1;
 `;
 
 const CaseValue = styled.span`
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: bold;
-  color: #00ff00;
-  text-shadow: 0 0 4px rgba(0, 255, 0, 0.5);
-  margin-top: 2px;
+  color: #fff;
+  margin-top: 5px;
+  z-index: 1;
 `;
 
 interface CaseBoardProps {
@@ -164,6 +169,8 @@ const CaseBoard: React.FC<CaseBoardProps> = ({
             $isOpened={isOpened}
             onClick={() => onCaseClick?.(caseNumber)}
           >
+            <LatchLeft />
+            <LatchRight />
             <CaseNumber>{caseNumber}</CaseNumber>
             {isOpened && value !== undefined && (
               <CaseValue>{formatValue(value)}</CaseValue>
