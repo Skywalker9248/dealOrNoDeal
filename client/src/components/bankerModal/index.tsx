@@ -1,5 +1,44 @@
 import styled from "styled-components";
 
+interface BankerModalProps {
+  offer: number;
+  onDeal: () => void;
+  onNoDeal: () => void;
+  isVisible?: boolean;
+}
+
+const BankerModal: React.FC<BankerModalProps> = ({
+  offer,
+  onDeal,
+  onNoDeal,
+  isVisible = true,
+}) => {
+  if (!isVisible) return null;
+
+  const formatOffer = (amount: number) => {
+    return `$${amount.toLocaleString()}`;
+  };
+
+  return (
+    <ModalOverlay>
+      <ModalContainer>
+        <Title>The Banker's Offer</Title>
+        <OfferAmount>{formatOffer(offer)}</OfferAmount>
+        <ButtonContainer>
+          <Button $variant="deal" onClick={onDeal}>
+            Deal
+          </Button>
+          <Button $variant="noDeal" onClick={onNoDeal}>
+            No Deal
+          </Button>
+        </ButtonContainer>
+      </ModalContainer>
+    </ModalOverlay>
+  );
+};
+
+export default BankerModal;
+
 const ModalOverlay = styled.div`
   position: fixed;
   top: 0;
@@ -110,42 +149,3 @@ const Button = styled.button<{ $variant: "deal" | "noDeal" }>`
     }
   `}
 `;
-
-interface BankerModalProps {
-  offer: number;
-  onDeal: () => void;
-  onNoDeal: () => void;
-  isVisible?: boolean;
-}
-
-const BankerModal: React.FC<BankerModalProps> = ({
-  offer,
-  onDeal,
-  onNoDeal,
-  isVisible = true,
-}) => {
-  if (!isVisible) return null;
-
-  const formatOffer = (amount: number) => {
-    return `$${amount.toLocaleString()}`;
-  };
-
-  return (
-    <ModalOverlay>
-      <ModalContainer>
-        <Title>The Banker's Offer</Title>
-        <OfferAmount>{formatOffer(offer)}</OfferAmount>
-        <ButtonContainer>
-          <Button $variant="deal" onClick={onDeal}>
-            Deal
-          </Button>
-          <Button $variant="noDeal" onClick={onNoDeal}>
-            No Deal
-          </Button>
-        </ButtonContainer>
-      </ModalContainer>
-    </ModalOverlay>
-  );
-};
-
-export default BankerModal;

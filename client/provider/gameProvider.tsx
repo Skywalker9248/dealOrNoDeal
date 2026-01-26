@@ -1,7 +1,7 @@
 import { GameContext } from "../context/gameContext";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { sessionApi } from "../src/api";
-import { GAME_STATE } from "../helpers/constants";
+import { BANKER_OFFER_TRIGGERS, GAME_STATE } from "../helpers/constants";
 import { transformSessionData } from "../helpers/utils";
 import Loader from "../src/components/loader";
 import {
@@ -29,7 +29,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   const updateExistingSession = (sessionData: any) => {
-    setGameState(sessionData.gameState);
+    setGameState(GAME_STATE.PLAYING);
     setSelectedCase(sessionData.selectedCase);
     setOpenedCases(sessionData.openedCases);
     if (sessionData.caseValues) {
@@ -122,12 +122,23 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         const newlyOpened = openedCaseNumbers.find(
           (num: number) => !openedCasesRef.current.includes(num),
         );
+
         if (newlyOpened) {
           setRecentlyOpenedCase(newlyOpened);
           // Clear recently opened case after 10 seconds
           setTimeout(() => {
             setRecentlyOpenedCase(null);
           }, 10000);
+
+          // Check for Banker Offer Triggers logic (only on NEW opens)
+          if (BANKER_OFFER_TRIGGERS.includes(openedCaseNumbers.length)) {
+            // Delay slightly to let the reveal animation start/finish if desired,
+            // but user asked for "after choice".
+            // A small timeout is good for UX so it doesn't pop INSTANTLY over the case reveal.
+            setTimeout(() => {
+              setShowBankerModal(true);
+            }, 1500);
+          }
         }
 
         setOpenedCases(openedCaseNumbers);

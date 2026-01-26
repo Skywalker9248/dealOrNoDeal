@@ -1,6 +1,33 @@
 import styled from "styled-components";
 import { useGameContext } from "../../../context/gameContext";
 
+const GoldTower = () => {
+  const { caseValues } = useGameContext();
+
+  const goldPrizes = [
+    1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000, 300000, 400000,
+    500000, 750000, 1000000,
+  ];
+
+  // Get all opened prize values from the caseValues map
+  const openedPrizeValues = Array.from(caseValues.values());
+
+  // A prize is active if it has NOT been opened (not in caseValues)
+  const isPrizeActive = (prize: number) => !openedPrizeValues.includes(prize);
+
+  return (
+    <TowerContainer>
+      {goldPrizes.map((prize, index) => (
+        <PrizeRow key={index} $isActive={isPrizeActive(prize)}>
+          ${prize.toLocaleString()}
+        </PrizeRow>
+      ))}
+    </TowerContainer>
+  );
+};
+
+export default GoldTower;
+
 const TowerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -48,30 +75,3 @@ const PrizeRow = styled.div<PrizeRowProps>`
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
   `}
 `;
-
-const GoldTower = () => {
-  const { caseValues } = useGameContext();
-
-  const goldPrizes = [
-    1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000, 300000, 400000,
-    500000, 750000, 1000000,
-  ];
-
-  // Get all opened prize values from the caseValues map
-  const openedPrizeValues = Array.from(caseValues.values());
-
-  // A prize is active if it has NOT been opened (not in caseValues)
-  const isPrizeActive = (prize: number) => !openedPrizeValues.includes(prize);
-
-  return (
-    <TowerContainer>
-      {goldPrizes.map((prize, index) => (
-        <PrizeRow key={index} $isActive={isPrizeActive(prize)}>
-          ${prize.toLocaleString()}
-        </PrizeRow>
-      ))}
-    </TowerContainer>
-  );
-};
-
-export default GoldTower;

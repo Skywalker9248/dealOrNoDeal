@@ -1,6 +1,32 @@
 import styled from "styled-components";
 import { useGameContext } from "../../../context/gameContext";
 
+const SilverTower = () => {
+  const { caseValues } = useGameContext();
+
+  const silverPrizes = [
+    0.1, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
+  ];
+
+  // Get all opened prize values from the caseValues map
+  const openedPrizeValues = Array.from(caseValues.values());
+
+  // A prize is active if it has NOT been opened (not in caseValues)
+  const isPrizeActive = (prize: number) => !openedPrizeValues.includes(prize);
+
+  return (
+    <TowerContainer>
+      {silverPrizes.map((prize, index) => (
+        <PrizeRow key={index} $isActive={isPrizeActive(prize)}>
+          ${prize < 1 ? prize.toFixed(2) : prize.toLocaleString()}
+        </PrizeRow>
+      ))}
+    </TowerContainer>
+  );
+};
+
+export default SilverTower;
+
 const TowerContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -48,29 +74,3 @@ const PrizeRow = styled.div<PrizeRowProps>`
     box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
   `}
 `;
-
-const SilverTower = () => {
-  const { caseValues } = useGameContext();
-
-  const silverPrizes = [
-    0.1, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
-  ];
-
-  // Get all opened prize values from the caseValues map
-  const openedPrizeValues = Array.from(caseValues.values());
-
-  // A prize is active if it has NOT been opened (not in caseValues)
-  const isPrizeActive = (prize: number) => !openedPrizeValues.includes(prize);
-
-  return (
-    <TowerContainer>
-      {silverPrizes.map((prize, index) => (
-        <PrizeRow key={index} $isActive={isPrizeActive(prize)}>
-          ${prize < 1 ? prize.toFixed(2) : prize.toLocaleString()}
-        </PrizeRow>
-      ))}
-    </TowerContainer>
-  );
-};
-
-export default SilverTower;

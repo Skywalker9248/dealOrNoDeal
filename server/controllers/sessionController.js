@@ -66,6 +66,7 @@ exports.updateSelectedCase = (req, res) => {
   const currentSession = sessions[sessionId];
   const caseNumber = req.body.caseNumber;
   currentSession.selectedCase = caseNumber;
+  currentSession.gameState = "PLAYING";
   res.status(200).send();
 };
 

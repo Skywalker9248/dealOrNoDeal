@@ -5,4 +5,4 @@ export const GAME_STATE = {
     GAME_OVER: "GAME_OVER",
 };
 
-export const BANKER_CALLS = [6, 11, 16, 20, 23, 25];
+export const BANKER_OFFER_TRIGGERS = [6, 11, 15, 18, 20, 22, 24];

@@ -1,5 +1,18 @@
 import styled, { keyframes } from "styled-components";
 
+const Loader = () => {
+  return (
+    <LoaderContainer>
+      <SpinnerWrapper>
+        <Spinner />
+      </SpinnerWrapper>
+      <LoadingText>Loading...</LoadingText>
+    </LoaderContainer>
+  );
+};
+
+export default Loader;
+
 const spin = keyframes`
   0% {
     transform: rotate(0deg);
@@ -90,16 +103,3 @@ const LoadingText = styled.p`
   animation: ${pulse} 1.5s ease-in-out infinite;
   text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
 `;
-
-const Loader = () => {
-  return (
-    <LoaderContainer>
-      <SpinnerWrapper>
-        <Spinner />
-      </SpinnerWrapper>
-      <LoadingText>Loading...</LoadingText>
-    </LoaderContainer>
-  );
-};
-
-export default Loader;
