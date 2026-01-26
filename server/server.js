@@ -57,6 +57,21 @@ io.on("connection", (socket) => {
       }
       // Broadcast to everyone in the session channel (including sender)
       io.to(sessionId).emit("case_opened", currentSession);
+
+      // Check if all 25 cases are opened (excluding selected case)
+      const openedCount = currentSession.cases.filter((c) => c.opened).length;
+      if (openedCount === 25) {
+        const selectedCaseValue =
+          sessionController.getSelectedCaseValue(sessionId);
+        io.to(sessionId).emit("game_ended", {
+          type: "all_opened",
+          winnings: selectedCaseValue,
+          selectedCaseValue: selectedCaseValue,
+        });
+        console.log(
+          `All cases opened in session ${sessionId}. Prize: $${selectedCaseValue}`,
+        );
+      }
     }
   });
 
@@ -68,6 +83,19 @@ io.on("connection", (socket) => {
       // Send the offer ONLY to the person who requested it
       io.to(sessionId).emit("banker_called", offerData);
     }
+  });
+
+  // Handle deal accepted - user accepts banker's offer
+  socket.on("deal_accepted", (data) => {
+    const { sessionId, acceptedOffer } = data;
+    const selectedCaseValue = sessionController.getSelectedCaseValue(sessionId);
+
+    io.to(sessionId).emit("game_ended", {
+      type: "deal_accepted",
+      winnings: acceptedOffer,
+      selectedCaseValue: selectedCaseValue,
+    });
+    console.log(`Deal accepted in session ${sessionId} for $${acceptedOffer}`);
   });
 
   socket.on("disconnect", () => {

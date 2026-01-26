@@ -148,3 +148,23 @@ Respond with ONLY a JSON object in this exact format (no other text):
     };
   }
 };
+
+exports.deleteSession = (req, res) => {
+  const sessionId = req.body.sessionId;
+  if (sessions[sessionId]) {
+    delete sessions[sessionId];
+    res.status(200).json({ message: "Session deleted" });
+  } else {
+    res.status(404).json({ error: "Session not found" });
+  }
+};
+
+exports.getSelectedCaseValue = (sessionId) => {
+  const session = sessions[sessionId];
+  if (!session) return null;
+
+  const selectedCaseData = session.cases.find(
+    (c) => c.caseNumber === session.selectedCase,
+  );
+  return selectedCaseData ? selectedCaseData.value : null;
+};

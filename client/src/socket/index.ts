@@ -57,5 +57,21 @@ export const disconnectSocket = (): void => {
   }
 };
 
+// Emit deal accepted event
+export const emitDealAccepted = (sessionId: string, acceptedOffer: number): void => {
+  socket.emit("deal_accepted", { sessionId, acceptedOffer });
+  console.log(`[Socket] Deal accepted: $${acceptedOffer} in session: ${sessionId}`);
+};
+
+// Listen for game ended event
+export const onGameEnded = (callback: (data: any) => void): void => {
+  socket.on("game_ended", callback);
+};
+
+// Remove game ended listener
+export const offGameEnded = (): void => {
+  socket.off("game_ended");
+};
+
 // Export socket instance for advanced usage
 export { socket };

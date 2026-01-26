@@ -12,6 +12,9 @@ import {
   offCaseOpened,
   disconnectSocket,
   socket,
+  emitDealAccepted,
+  onGameEnded,
+  offGameEnded,
 } from "../src/socket";
 
 const GameProvider = ({ children }: { children: React.ReactNode }) => {
@@ -30,6 +33,14 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [bankerLoading, setBankerLoading] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showGameEndModal, setShowGameEndModal] = useState<boolean>(false);
+  const [gameEndWinnings, setGameEndWinnings] = useState<number>(0);
+  const [gameEndType, setGameEndType] = useState<
+    "deal_accepted" | "all_opened" | null
+  >(null);
+  const [selectedCaseValue, setSelectedCaseValue] = useState<number | null>(
+    null,
+  );
 
   const updateExistingSession = (sessionData: any) => {
     setGameState(GAME_STATE.PLAYING);
@@ -155,10 +166,22 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
       setBankerLoading(false);
     });
 
+    // Listen for game ended event
+    onGameEnded((gameEndData: any) => {
+      console.log("[Socket] Received game_ended event:", gameEndData);
+      setGameEndType(gameEndData.type);
+      setGameEndWinnings(gameEndData.winnings);
+      setSelectedCaseValue(gameEndData.selectedCaseValue);
+      setShowBankerModal(false);
+      setShowGameEndModal(true);
+      setGameState(GAME_STATE.GAME_OVER);
+    });
+
     // Cleanup on unmount or sessionId change
     return () => {
       leaveSession(sessionId);
       offCaseOpened();
+      offGameEnded();
       disconnectSocket();
     };
   }, [sessionId]);
@@ -203,6 +226,45 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     [sessionId, openedCases],
   );
 
+  // Accept banker's deal
+  const acceptDeal = useCallback(() => {
+    if (!sessionId) {
+      console.error("[Socket] Cannot accept deal: no session ID");
+      return;
+    }
+    emitDealAccepted(sessionId, bankOffer);
+    setShowBankerModal(false);
+  }, [sessionId, bankOffer]);
+
+  // Restart game - delete session and create new one
+  const restartGame = useCallback(async () => {
+    if (sessionId) {
+      try {
+        await sessionApi.deleteSession(sessionId);
+      } catch (error) {
+        console.error("Error deleting session:", error);
+      }
+    }
+    // Reset all state
+    sessionStorage.removeItem("sessionId");
+    setSessionId(null);
+    setGameState(GAME_STATE.NEW_GAME);
+    setSelectedCase(0);
+    setOpenedCases([]);
+    setCaseValues(new Map());
+    setRecentlyOpenedCase(null);
+    setBankOffer(0);
+    setBankOfferMessage("");
+    setShowBankerModal(false);
+    setBankerLoading(false);
+    setShowGameEndModal(false);
+    setGameEndWinnings(0);
+    setGameEndType(null);
+    setSelectedCaseValue(null);
+    // Create new session
+    await createNewSession();
+  }, [sessionId]);
+
   return (
     <GameContext.Provider
       value={{
@@ -216,6 +278,10 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         showSelectCaseModal,
         showBankerModal,
         bankerLoading,
+        showGameEndModal,
+        gameEndWinnings,
+        gameEndType,
+        selectedCaseValue,
         updateBankOffer,
         updateSelectedCase,
         updateOpenedCases,
@@ -223,6 +289,8 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         updateShowSelectCaseModal,
         updateShowBankerModal,
         openCase,
+        acceptDeal,
+        restartGame,
       }}
     >
       {showLoader && <Loader />}

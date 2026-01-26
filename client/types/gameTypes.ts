@@ -9,6 +9,10 @@ type gameContextType = {
   showSelectCaseModal: boolean;
   showBankerModal: boolean;
   bankerLoading: boolean;
+  showGameEndModal: boolean;
+  gameEndWinnings: number;
+  gameEndType: 'deal_accepted' | 'all_opened' | null;
+  selectedCaseValue: number | null;
   updateBankOffer: (newOffer: number) => void;
   updateSelectedCase: (newCase: number) => void;
   updateOpenedCases: (newCases: number[]) => void;
@@ -16,6 +20,8 @@ type gameContextType = {
   updateShowSelectCaseModal: (newShowSelectCaseModal: boolean) => void;
   updateShowBankerModal: (newShowBankerModal: boolean) => void;
   openCase: (caseNumber: number) => void;
+  acceptDeal: () => void;
+  restartGame: () => void;
 };
 
 export type { gameContextType };

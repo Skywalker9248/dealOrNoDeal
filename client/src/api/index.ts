@@ -10,6 +10,8 @@ export const sessionApi = {
       sessionId,
       caseNumber,
     }),
+  deleteSession: (sessionId: string) =>
+    axiosInstance.post("/session/delete", { sessionId }),
 };
 
 // Export the axios instance for custom requests
