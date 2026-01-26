@@ -1,8 +1,9 @@
 const transformSessionData = (sessionData: any) => {
+  const data = sessionData.data;
   return {
-    selectedCase: sessionData.selectedCase,
-    openedCases: sessionData.openedCases,
-    gameState: sessionData.gameState,
+    selectedCase: data.selectedCase,
+    openedCases: data.openedCases?.map((c: any) => c.caseNumber) || [],
+    gameState: data.gameState,
   };
 };
 

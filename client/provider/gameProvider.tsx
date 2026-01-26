@@ -28,6 +28,8 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
       setShowSelectCaseModal(true);
     } catch (error) {
       console.error("Error creating session:", error);
+    } finally {
+      setShowLoader(false);
     }
   };
 
