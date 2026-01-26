@@ -12,7 +12,7 @@ const BankerModal: React.FC<BankerModalProps> = ({
 }) => {
   if (!isVisible) return null;
 
-  const { updateShowBankerModal, bankerLoading, bankOfferMessage } =
+  const { updateShowBankerModal, bankerLoading, bankOfferMessage, acceptDeal } =
     useGameContext();
 
   const formatOffer = (amount: number) => {
@@ -20,7 +20,7 @@ const BankerModal: React.FC<BankerModalProps> = ({
   };
 
   const onDeal = () => {
-    updateShowBankerModal(false);
+    acceptDeal();
   };
 
   const onNoDeal = () => {

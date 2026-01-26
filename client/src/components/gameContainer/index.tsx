@@ -6,12 +6,15 @@ import BankerModal from "../bankerModal";
 import { useGameContext } from "../../../hooks/useGameContext";
 import CaseSelectionModal from "../caseSelectionModal";
 import SelectedCaseDisplay from "../selectedCaseDisplay";
+import GameEndModal from "../gameEndModal";
+import QuitButton from "../quitButton";
 
 const GameContainer = () => {
-  const { showBankerModal, bankOffer } = useGameContext();
+  const { showBankerModal, bankOffer, showGameEndModal } = useGameContext();
 
   return (
     <GameWrapper>
+      <QuitButton />
       <LeftPanel>
         <SilverTower />
       </LeftPanel>
@@ -20,6 +23,7 @@ const GameContainer = () => {
         <CaseBoard />
         <CaseSelectionModal />
         {showBankerModal && <BankerModal offer={bankOffer} />}
+        {showGameEndModal && <GameEndModal />}
         <SelectedCaseDisplay />
       </CenterPanel>
 

@@ -1,12 +1,11 @@
 import styled from "styled-components";
 import { useGameContext } from "../../../context/gameContext";
-import { GAME_STATE } from "../../../helpers/constants";
 
 const QuitButton: React.FC = () => {
-  const { gameState, restartGame } = useGameContext();
+  const { selectedCase, restartGame } = useGameContext();
 
-  // Only show during PLAYING state
-  if (gameState !== GAME_STATE.PLAYING) return null;
+  // Only show when a case has been selected (game is in progress)
+  if (!selectedCase || selectedCase === 0) return null;
 
   return (
     <QuitButtonContainer>
@@ -25,17 +24,17 @@ const QuitButtonContainer = styled.div`
 `;
 
 const StyledQuitButton = styled.button`
-  padding: 10px 20px;
-  font-size: 0.9rem;
+  padding: 6px 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
   background: rgba(0, 0, 0, 0.5);
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
 
   &:hover {
