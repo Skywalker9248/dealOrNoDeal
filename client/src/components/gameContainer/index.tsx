@@ -3,6 +3,40 @@ import SilverTower from "../silverTower";
 import GoldTower from "../goldTower";
 import CaseBoard from "../caseBoard";
 import BankerModal from "../bankerModal";
+import { useGameContext } from "../../../hooks/useGameContext";
+import CaseSelectionModal from "../caseSelectionModal";
+
+const GameContainer = () => {
+  const { showBankerModal } = useGameContext();
+  const bankerOffer = 163000;
+
+  return (
+    <GameWrapper>
+      <LeftPanel>
+        <SilverTower />
+      </LeftPanel>
+
+      <CenterPanel>
+        <CaseBoard />
+        <PhoneIcon title="Call the Banker" />
+        <CaseSelectionModal />
+        {showBankerModal && (
+          <BankerModal
+            offer={bankerOffer}
+            onDeal={() => console.log("Deal accepted!")}
+            onNoDeal={() => console.log("No deal!")}
+          />
+        )}
+      </CenterPanel>
+
+      <RightPanel>
+        <GoldTower />
+      </RightPanel>
+    </GameWrapper>
+  );
+};
+
+export default GameContainer;
 
 const GameWrapper = styled.div`
   display: flex;
@@ -68,36 +102,3 @@ const PhoneIcon = styled.div`
     font-size: 24px;
   }
 `;
-
-const GameContainer = () => {
-  // Placeholder state - connect to your game context
-  const showBankerModal = false;
-  const bankerOffer = 163000;
-
-  return (
-    <GameWrapper>
-      <LeftPanel>
-        <SilverTower />
-      </LeftPanel>
-
-      <CenterPanel>
-        <CaseBoard />
-        <PhoneIcon title="Call the Banker" />
-
-        {showBankerModal && (
-          <BankerModal
-            offer={bankerOffer}
-            onDeal={() => console.log("Deal accepted!")}
-            onNoDeal={() => console.log("No deal!")}
-          />
-        )}
-      </CenterPanel>
-
-      <RightPanel>
-        <GoldTower />
-      </RightPanel>
-    </GameWrapper>
-  );
-};
-
-export default GameContainer;
