@@ -101,32 +101,26 @@ exports.getBankerOffer = async (sessionId) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        models: [
-          "openai/gpt-oss-120b:free",
-          "google/gemma-3n-e4b-it:free",
-          "meta-llama/llama-4-scout:free",
-          "z-ai/glm-4.5-air:free",
-          "deepseek/deepseek-r1-0528:free",
-        ],
+        model: "google/gemma-3-1b-it:free",
         messages: [
           {
             role: "system",
             content:
-              "You are the Banker. Your goal is to convince the player to take a deal. You must respond ONLY in JSON format.",
+              "You are the Banker from Deal or No Deal. Your goal is to convince the player to take a deal. Respond ONLY with a valid JSON object containing 'offer' (number) and 'message' (string).",
           },
           {
             role: "user",
-            content: `Remaing cases: ${remainingValues.join(", ")}. Avg: ${average}. Suggested offer: ${baseOffer}. 
-                    Provide JSON: {"offer": number, "message": "string"}`,
+            content: `Remaining case values: ${remainingValues.join(", ")}. Average: $${average.toFixed(0)}. Suggested offer around: $${baseOffer}. 
+Respond with JSON: {"offer": <your_offer_number>, "message": "<your_persuasive_message>"}`,
           },
         ],
-        // Gemma 3n supports structured output well
-        response_format: { type: "json_object" },
       },
       {
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "X-Title": "Deal or No Deal Project",
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.SITE_URL || "http://localhost:5173",
+          "X-Title": "Deal or No Deal Game",
         },
       },
     );

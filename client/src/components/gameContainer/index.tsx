@@ -8,8 +8,7 @@ import CaseSelectionModal from "../caseSelectionModal";
 import SelectedCaseDisplay from "../selectedCaseDisplay";
 
 const GameContainer = () => {
-  const { showBankerModal } = useGameContext();
-  const bankerOffer = 163000;
+  const { showBankerModal, bankOffer } = useGameContext();
 
   return (
     <GameWrapper>
@@ -20,13 +19,7 @@ const GameContainer = () => {
       <CenterPanel>
         <CaseBoard />
         <CaseSelectionModal />
-        {showBankerModal && (
-          <BankerModal
-            offer={bankerOffer}
-            onDeal={() => console.log("Deal accepted!")}
-            onNoDeal={() => console.log("No deal!")}
-          />
-        )}
+        {showBankerModal && <BankerModal offer={bankOffer} />}
         <SelectedCaseDisplay />
       </CenterPanel>
 

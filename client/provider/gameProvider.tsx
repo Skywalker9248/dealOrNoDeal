@@ -27,6 +27,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [bankOffer, setBankOffer] = useState<number>(0);
   const [bankOfferMessage, setBankOfferMessage] = useState<string>("");
   const [showBankerModal, setShowBankerModal] = useState<boolean>(false);
+  const [bankerLoading, setBankerLoading] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
@@ -134,6 +135,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
           // Check for Banker Offer Triggers logic (only on NEW opens)
           if (BANKER_OFFER_TRIGGERS.includes(openedCaseNumbers.length)) {
+            setBankerLoading(true);
             socket.emit("request_banker_offer", { sessionId });
             setTimeout(() => {
               setShowBankerModal(true);
@@ -150,6 +152,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("[Socket] Received banker_called event:", offerData);
       setBankOffer(offerData.offer);
       setBankOfferMessage(offerData.message);
+      setBankerLoading(false);
     });
 
     // Cleanup on unmount or sessionId change
@@ -212,6 +215,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         gameState,
         showSelectCaseModal,
         showBankerModal,
+        bankerLoading,
         updateBankOffer,
         updateSelectedCase,
         updateOpenedCases,

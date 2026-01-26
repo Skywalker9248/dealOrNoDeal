@@ -8,6 +8,7 @@ type gameContextType = {
   gameState: string;
   showSelectCaseModal: boolean;
   showBankerModal: boolean;
+  bankerLoading: boolean;
   updateBankOffer: (newOffer: number) => void;
   updateSelectedCase: (newCase: number) => void;
   updateOpenedCases: (newCases: number[]) => void;

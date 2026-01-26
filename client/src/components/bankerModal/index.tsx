@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { useGameContext } from "../../../context/gameContext";
 
 interface BankerModalProps {
@@ -12,7 +12,7 @@ const BankerModal: React.FC<BankerModalProps> = ({
 }) => {
   if (!isVisible) return null;
 
-  const { updateShowBankerModal } = useGameContext();
+  const { updateShowBankerModal, bankerLoading } = useGameContext();
 
   const formatOffer = (amount: number) => {
     return `$${amount.toLocaleString()}`;
@@ -29,16 +29,27 @@ const BankerModal: React.FC<BankerModalProps> = ({
   return (
     <ModalOverlay>
       <ModalContainer>
-        <Title>The Banker's Offer</Title>
-        <OfferAmount>{formatOffer(offer)}</OfferAmount>
-        <ButtonContainer>
-          <Button $variant="deal" onClick={onDeal}>
-            Deal
-          </Button>
-          <Button $variant="noDeal" onClick={onNoDeal}>
-            No Deal
-          </Button>
-        </ButtonContainer>
+        {bankerLoading ? (
+          <>
+            <Title>The Banker is Calling...</Title>
+            <LoadingText>
+              Banker Thinking<LoadingDots>...</LoadingDots>
+            </LoadingText>
+          </>
+        ) : (
+          <>
+            <Title>The Banker's Offer</Title>
+            <OfferAmount>{formatOffer(offer)}</OfferAmount>
+            <ButtonContainer>
+              <Button $variant="deal" onClick={onDeal}>
+                Deal
+              </Button>
+              <Button $variant="noDeal" onClick={onNoDeal}>
+                No Deal
+              </Button>
+            </ButtonContainer>
+          </>
+        )}
       </ModalContainer>
     </ModalOverlay>
   );
@@ -90,6 +101,43 @@ const OfferAmount = styled.div`
     0 2px 4px rgba(0, 0, 0, 0.5);
   margin: 20px 0 30px 0;
   font-family: "Arial Black", sans-serif;
+`;
+
+const pulse = keyframes`
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+`;
+
+const dotAnimation = keyframes`
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+`;
+
+const LoadingText = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow:
+    0 0 10px rgba(255, 215, 0, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  margin: 30px 0;
+  animation: ${pulse} 1.5s ease-in-out infinite;
+`;
+
+const LoadingDots = styled.span`
+  display: inline-block;
+  animation: ${dotAnimation} 1.5s steps(1, end) infinite;
 `;
 
 const ButtonContainer = styled.div`
