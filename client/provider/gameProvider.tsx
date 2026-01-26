@@ -32,6 +32,9 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setGameState(sessionData.gameState);
     setSelectedCase(sessionData.selectedCase);
     setOpenedCases(sessionData.openedCases);
+    if (sessionData.caseValues) {
+      setCaseValues(sessionData.caseValues);
+    }
   };
 
   const createNewSession = async () => {
@@ -64,7 +67,8 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
             !transformedSessionData ||
             !transformedSessionData.gameState ||
             !transformedSessionData.selectedCase ||
-            !transformedSessionData.openedCases
+            !transformedSessionData.openedCases ||
+            !transformedSessionData.caseValues
           ) {
             await createNewSession();
             return;
