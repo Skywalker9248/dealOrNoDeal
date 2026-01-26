@@ -5,7 +5,9 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 // Create socket instance
 const socket: Socket = io(SOCKET_URL, {
-  autoConnect: false, // Don't connect automatically, we'll connect when we have a session
+  autoConnect: false,
+  withCredentials: true,
+  transports: ["websocket", "polling"], // Try websocket first, then polling
 });
 
 // Join a session channel
