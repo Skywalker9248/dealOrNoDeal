@@ -12,7 +12,8 @@ const BankerModal: React.FC<BankerModalProps> = ({
 }) => {
   if (!isVisible) return null;
 
-  const { updateShowBankerModal, bankerLoading } = useGameContext();
+  const { updateShowBankerModal, bankerLoading, bankOfferMessage } =
+    useGameContext();
 
   const formatOffer = (amount: number) => {
     return `$${amount.toLocaleString()}`;
@@ -40,6 +41,9 @@ const BankerModal: React.FC<BankerModalProps> = ({
           <>
             <Title>The Banker's Offer</Title>
             <OfferAmount>{formatOffer(offer)}</OfferAmount>
+            {bankOfferMessage && (
+              <BankerMessage>"{bankOfferMessage}"</BankerMessage>
+            )}
             <ButtonContainer>
               <Button $variant="deal" onClick={onDeal}>
                 Deal
@@ -99,8 +103,18 @@ const OfferAmount = styled.div`
   text-shadow:
     0 0 10px rgba(255, 215, 0, 0.5),
     0 2px 4px rgba(0, 0, 0, 0.5);
-  margin: 20px 0 30px 0;
+  margin: 20px 0 15px 0;
   font-family: "Arial Black", sans-serif;
+`;
+
+const BankerMessage = styled.p`
+  color: #b0c4de;
+  font-size: 1rem;
+  font-style: italic;
+  margin: 0 0 20px 0;
+  max-width: 300px;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 `;
 
 const pulse = keyframes`

@@ -101,17 +101,14 @@ exports.getBankerOffer = async (sessionId) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "google/gemma-3-1b-it:free",
+        model: "z-ai/glm-4.5-air:free",
         messages: [
           {
-            role: "system",
-            content:
-              "You are the Banker from Deal or No Deal. Your goal is to convince the player to take a deal. Respond ONLY with a valid JSON object containing 'offer' (number) and 'message' (string).",
-          },
-          {
             role: "user",
-            content: `Remaining case values: ${remainingValues.join(", ")}. Average: $${average.toFixed(0)}. Suggested offer around: $${baseOffer}. 
-Respond with JSON: {"offer": <your_offer_number>, "message": "<your_persuasive_message>"}`,
+            content: `You are the Banker from Deal or No Deal. The remaining case values are: ${remainingValues.join(", ")}. The average is $${average.toFixed(0)}. Make an offer around $${baseOffer}.
+
+Respond with ONLY a JSON object in this exact format (no other text):
+{"offer": ${baseOffer}, "message": "Your persuasive message here"}`,
           },
         ],
       },
@@ -119,19 +116,31 @@ Respond with JSON: {"offer": <your_offer_number>, "message": "<your_persuasive_m
         headers: {
           Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": process.env.SITE_URL || "http://localhost:5173",
+          "HTTP-Referer": "http://localhost:5173",
           "X-Title": "Deal or No Deal Game",
         },
       },
     );
 
     // OpenRouter returns the content as a string, we parse it
-    const aiResult = JSON.parse(response.data.choices[0].message.content);
+    const content = response.data.choices[0].message.content;
+    console.log("AI Response:", content);
 
-    session.bankOffer = aiResult.offer;
-    return aiResult;
+    // Try to extract JSON from the response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const aiResult = JSON.parse(jsonMatch[0]);
+      session.bankOffer = aiResult.offer;
+      return aiResult;
+    }
+
+    // Fallback if no valid JSON found
+    return {
+      offer: baseOffer,
+      message: "Take this offer before it's too late!",
+    };
   } catch (error) {
-    console.error("Gemma API Error:", error.message);
+    console.error("API Error:", error.response?.data || error.message);
     // Safety fallback if the free model is rate-limited
     return {
       offer: baseOffer,
