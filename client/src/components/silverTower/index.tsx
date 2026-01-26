@@ -50,7 +50,7 @@ const PrizeRow = styled.div<PrizeRowProps>`
 
 const SilverTower = () => {
   const silverPrizes = [
-    0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000,
+    0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750,
   ];
 
   // Prizes from $0.01 to $100 are "active" (blue glow), $200+ are inactive (gray)
