@@ -1,9 +1,17 @@
 import { GameContext } from "../context/gameContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { sessionApi } from "../src/api";
 import { GAME_STATE } from "../helpers/constants";
 import { transformSessionData } from "../helpers/utils";
 import Loader from "../src/components/loader";
+import {
+  joinSession,
+  leaveSession,
+  emitCaseOpened,
+  onCaseOpened,
+  offCaseOpened,
+  disconnectSocket,
+} from "../src/socket";
 
 const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [gameState, setGameState] = useState<string>(GAME_STATE.NEW_GAME);
@@ -11,9 +19,14 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     useState<boolean>(false);
   const [selectedCase, setSelectedCase] = useState<number>(0);
   const [openedCases, setOpenedCases] = useState<number[]>([]);
+  const [caseValues, setCaseValues] = useState<Map<number, number>>(new Map());
+  const [recentlyOpenedCase, setRecentlyOpenedCase] = useState<number | null>(
+    null,
+  );
   const [bankOffer, setBankOffer] = useState<number>(0);
   const [showBankerModal, setShowBankerModal] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const updateExistingSession = (sessionData: any) => {
     setGameState(sessionData.gameState);
@@ -24,7 +37,9 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const createNewSession = async () => {
     try {
       const sessionData = await sessionApi.createSession();
-      sessionStorage.setItem("sessionId", sessionData.data.sessionId);
+      const newSessionId = sessionData.data.sessionId;
+      sessionStorage.setItem("sessionId", newSessionId);
+      setSessionId(newSessionId);
       setShowSelectCaseModal(true);
     } catch (error) {
       console.error("Error creating session:", error);
@@ -33,6 +48,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Initialize session
   useEffect(() => {
     setShowLoader(true);
     const getSession = async () => {
@@ -53,6 +69,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
             await createNewSession();
             return;
           } else {
+            setSessionId(sessionStorageSessionId);
             updateExistingSession(transformedSessionData);
           }
         } catch (error) {
@@ -67,6 +84,54 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     };
     getSession();
   }, []);
+
+  // Socket connection and listeners
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Join the session channel
+    joinSession(sessionId);
+
+    // Listen for case opened events from the server
+    onCaseOpened((updatedSession: any) => {
+      console.log("[Socket] Received case_opened event:", updatedSession);
+      if (updatedSession && updatedSession.cases) {
+        // Extract opened case numbers and values from the cases array
+        const openedCasesData = updatedSession.cases.filter(
+          (c: any) => c.opened === true,
+        );
+        const openedCaseNumbers = openedCasesData.map((c: any) => c.caseNumber);
+
+        // Build case values map
+        const newCaseValues = new Map<number, number>();
+        openedCasesData.forEach((c: any) => {
+          newCaseValues.set(c.caseNumber, c.value);
+        });
+
+        // Find the newly opened case (the one that wasn't in openedCases before)
+        const newlyOpened = openedCaseNumbers.find(
+          (num: number) => !openedCases.includes(num),
+        );
+        if (newlyOpened) {
+          setRecentlyOpenedCase(newlyOpened);
+          // Clear recently opened case after 10 seconds
+          setTimeout(() => {
+            setRecentlyOpenedCase(null);
+          }, 10000);
+        }
+
+        setOpenedCases(openedCaseNumbers);
+        setCaseValues(newCaseValues);
+      }
+    });
+
+    // Cleanup on unmount or sessionId change
+    return () => {
+      leaveSession(sessionId);
+      offCaseOpened();
+      disconnectSocket();
+    };
+  }, [sessionId]);
 
   const updateBankOffer = (newOffer: number) => {
     setBankOffer(newOffer);
@@ -92,11 +157,29 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setShowBankerModal(newShowBankerModal);
   };
 
+  // Open a case by emitting socket event
+  const openCase = useCallback(
+    (caseNumber: number) => {
+      if (!sessionId) {
+        console.error("[Socket] Cannot open case: no session ID");
+        return;
+      }
+      if (openedCases.includes(caseNumber)) {
+        console.log("[Socket] Case already opened:", caseNumber);
+        return;
+      }
+      emitCaseOpened(sessionId, caseNumber);
+    },
+    [sessionId, openedCases],
+  );
+
   return (
     <GameContext.Provider
       value={{
         selectedCase,
         openedCases,
+        caseValues,
+        recentlyOpenedCase,
         bankOffer,
         gameState,
         showSelectCaseModal,
@@ -107,6 +190,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         updateGameState,
         updateShowSelectCaseModal,
         updateShowBankerModal,
+        openCase,
       }}
     >
       {showLoader && <Loader />}

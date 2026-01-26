@@ -3,19 +3,29 @@ import styled from "styled-components";
 import { useGameContext } from "../../../hooks/useGameContext";
 
 const CaseBoard: React.FC = () => {
-  const { selectedCase } = useGameContext();
+  const {
+    selectedCase,
+    openedCases,
+    openCase,
+    caseValues,
+    recentlyOpenedCase,
+  } = useGameContext();
   const cases = Array.from({ length: 26 }, (_, i) => i + 1);
 
   const formatValue = (value: number) => {
+    if (value >= 1000) {
+      return `$${value.toLocaleString()}`;
+    }
     return `$${value.toFixed(2)}`;
   };
 
   const onCaseClick = (caseNumber: number) => {
-    console.log(caseNumber);
+    if (openedCases.includes(caseNumber)) {
+      console.log("Case already opened:", caseNumber);
+      return;
+    }
+    openCase(caseNumber);
   };
-
-  const openedCases: any[] = [];
-  const caseValues = new Map<number, number>();
 
   // Filter out selected case from the grid
   const availableCases = useMemo(() => {
@@ -28,18 +38,21 @@ const CaseBoard: React.FC = () => {
       {availableCases.map((caseNumber) => {
         const isOpened = openedCases.includes(caseNumber);
         const value = caseValues?.get(caseNumber);
+        const showValue = isOpened && recentlyOpenedCase === caseNumber;
 
         return (
           <CaseBox
             key={caseNumber}
             $isOpened={isOpened}
+            $showValue={showValue}
             onClick={() => onCaseClick?.(caseNumber)}
           >
             <LatchLeft />
             <LatchRight />
-            <CaseNumber>{caseNumber}</CaseNumber>
-            {isOpened && value !== undefined && (
+            {showValue && value !== undefined ? (
               <CaseValue>{formatValue(value)}</CaseValue>
+            ) : (
+              <CaseNumber>{isOpened ? "" : caseNumber}</CaseNumber>
             )}
           </CaseBox>
         );
@@ -59,7 +72,11 @@ const CaseBoardContainer = styled.div`
   margin: 0 auto;
 `;
 
-const CaseBox = styled.div<{ $isSelected?: boolean; $isOpened?: boolean }>`
+const CaseBox = styled.div<{
+  $isSelected?: boolean;
+  $isOpened?: boolean;
+  $showValue?: boolean;
+}>`
   aspect-ratio: 1.4; /* More rectangular */
   background:
     repeating-linear-gradient(

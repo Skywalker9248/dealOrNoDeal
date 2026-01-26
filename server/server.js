@@ -47,7 +47,14 @@ io.on("connection", (socket) => {
     const { sessionId, caseNumber } = data;
     const currentSession = sessionController.getCurrentSession(sessionId);
     if (currentSession) {
-      currentSession.cases[caseNumber].isOpened = true;
+      // Find the case by caseNumber and mark it as opened
+      const caseToOpen = currentSession.cases.find(
+        (c) => c.caseNumber === caseNumber,
+      );
+      if (caseToOpen) {
+        caseToOpen.opened = true;
+        console.log(`Case ${caseNumber} opened in session ${sessionId}`);
+      }
       // Broadcast to everyone in the session channel (including sender)
       io.to(sessionId).emit("case_opened", currentSession);
     }

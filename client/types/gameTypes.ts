@@ -1,6 +1,8 @@
 type gameContextType = {
   selectedCase: number;
   openedCases: number[];
+  caseValues: Map<number, number>;
+  recentlyOpenedCase: number | null;
   bankOffer: number;
   gameState: string;
   showSelectCaseModal: boolean;
@@ -11,6 +13,7 @@ type gameContextType = {
   updateGameState: (newGameState: string) => void;
   updateShowSelectCaseModal: (newShowSelectCaseModal: boolean) => void;
   updateShowBankerModal: (newShowBankerModal: boolean) => void;
+  openCase: (caseNumber: number) => void;
 };
 
 export type { gameContextType };
