@@ -17,7 +17,6 @@ A fun, interactive web implementation of the classic TV game show **Deal or No D
 - Dynamic case selection with real‑time updates via Socket.io.
 - Server‑driven game logic and session management.
 - Stylish UI with modern CSS effects (glassmorphism, gradients, micro‑animations).
-- Responsive design for desktop and mobile browsers.
 
 ## Tech Stack
 
