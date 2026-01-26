@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require("uuid");
+const axios = require("axios");
 
 const prizes = [
   0.1, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000, 5000, 10000,
@@ -41,6 +42,7 @@ exports.createSession = (req, res) => {
 
   // 4. Send response
   res.json({ sessionId });
+  // console.log("Created session:", sessionId); // Debug
 };
 
 exports.getSession = (req, res) => {
@@ -73,4 +75,73 @@ exports.updateSelectedCase = (req, res) => {
 exports.getCurrentSession = (sessionId) => {
   const currentSession = sessions[sessionId];
   return currentSession;
+};
+
+exports.getBankerOffer = async (sessionId) => {
+  const session = sessions[sessionId];
+  if (!session) return null;
+
+  const remainingValues = session.cases
+    .filter((c) => !c.opened) // Fixed: using 'opened' property instead of 'isOpened' to match Create Cases
+    .map((c) => c.value);
+
+  const average =
+    remainingValues.reduce((a, b) => a + b, 0) / remainingValues.length;
+
+  // Determining Banker's aggression
+  const roundNumber = session.cases.filter((c) => c.opened).length; // Calculate revealed count
+  let percentage = 0.15;
+  if (roundNumber >= 11) percentage = 0.4;
+  if (roundNumber >= 18) percentage = 0.75;
+  if (roundNumber >= 22) percentage = 0.95; // Final round generosity
+
+  const baseOffer = Math.floor(average * percentage);
+
+  try {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        models: [
+          "openai/gpt-oss-120b:free",
+          "google/gemma-3n-e4b-it:free",
+          "meta-llama/llama-4-scout:free",
+          "z-ai/glm-4.5-air:free",
+          "deepseek/deepseek-r1-0528:free",
+        ],
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are the Banker. Your goal is to convince the player to take a deal. You must respond ONLY in JSON format.",
+          },
+          {
+            role: "user",
+            content: `Remaing cases: ${remainingValues.join(", ")}. Avg: ${average}. Suggested offer: ${baseOffer}. 
+                    Provide JSON: {"offer": number, "message": "string"}`,
+          },
+        ],
+        // Gemma 3n supports structured output well
+        response_format: { type: "json_object" },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "X-Title": "Deal or No Deal Project",
+        },
+      },
+    );
+
+    // OpenRouter returns the content as a string, we parse it
+    const aiResult = JSON.parse(response.data.choices[0].message.content);
+
+    session.bankOffer = aiResult.offer;
+    return aiResult;
+  } catch (error) {
+    console.error("Gemma API Error:", error.message);
+    // Safety fallback if the free model is rate-limited
+    return {
+      offer: baseOffer,
+      message: "This is my final offer. Take it or leave it.",
+    };
+  }
 };

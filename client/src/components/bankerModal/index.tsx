@@ -1,22 +1,29 @@
 import styled from "styled-components";
+import { useGameContext } from "../../../context/gameContext";
 
 interface BankerModalProps {
   offer: number;
-  onDeal: () => void;
-  onNoDeal: () => void;
   isVisible?: boolean;
 }
 
 const BankerModal: React.FC<BankerModalProps> = ({
   offer,
-  onDeal,
-  onNoDeal,
   isVisible = true,
 }) => {
   if (!isVisible) return null;
 
+  const { updateShowBankerModal } = useGameContext();
+
   const formatOffer = (amount: number) => {
     return `$${amount.toLocaleString()}`;
+  };
+
+  const onDeal = () => {
+    updateShowBankerModal(false);
+  };
+
+  const onNoDeal = () => {
+    updateShowBankerModal(false);
   };
 
   return (

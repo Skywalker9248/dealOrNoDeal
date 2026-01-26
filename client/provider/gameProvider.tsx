@@ -11,6 +11,7 @@ import {
   onCaseOpened,
   offCaseOpened,
   disconnectSocket,
+  socket,
 } from "../src/socket";
 
 const GameProvider = ({ children }: { children: React.ReactNode }) => {
@@ -24,6 +25,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     null,
   );
   const [bankOffer, setBankOffer] = useState<number>(0);
+  const [bankOfferMessage, setBankOfferMessage] = useState<string>("");
   const [showBankerModal, setShowBankerModal] = useState<boolean>(false);
   const [showLoader, setShowLoader] = useState<boolean>(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -132,18 +134,22 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
           // Check for Banker Offer Triggers logic (only on NEW opens)
           if (BANKER_OFFER_TRIGGERS.includes(openedCaseNumbers.length)) {
-            // Delay slightly to let the reveal animation start/finish if desired,
-            // but user asked for "after choice".
-            // A small timeout is good for UX so it doesn't pop INSTANTLY over the case reveal.
+            socket.emit("request_banker_offer", { sessionId });
             setTimeout(() => {
               setShowBankerModal(true);
-            }, 1500);
+            }, 150);
           }
         }
 
         setOpenedCases(openedCaseNumbers);
         setCaseValues(newCaseValues);
       }
+    });
+
+    socket.on("banker_called", (offerData: any) => {
+      console.log("[Socket] Received banker_called event:", offerData);
+      setBankOffer(offerData.offer);
+      setBankOfferMessage(offerData.message);
     });
 
     // Cleanup on unmount or sessionId change
@@ -202,6 +208,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
         caseValues,
         recentlyOpenedCase,
         bankOffer,
+        bankOfferMessage,
         gameState,
         showSelectCaseModal,
         showBankerModal,

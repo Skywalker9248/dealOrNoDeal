@@ -60,6 +60,16 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("request_banker_offer", async (data) => {
+    const { sessionId } = data;
+    const offerData = await sessionController.getBankerOffer(sessionId);
+
+    if (offerData) {
+      // Send the offer ONLY to the person who requested it
+      io.to(sessionId).emit("banker_called", offerData);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });

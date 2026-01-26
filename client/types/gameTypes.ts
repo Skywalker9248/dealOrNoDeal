@@ -4,6 +4,7 @@ type gameContextType = {
   caseValues: Map<number, number>;
   recentlyOpenedCase: number | null;
   bankOffer: number;
+  bankOfferMessage: string;
   gameState: string;
   showSelectCaseModal: boolean;
   showBankerModal: boolean;
