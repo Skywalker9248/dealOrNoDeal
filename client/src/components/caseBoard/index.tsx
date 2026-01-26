@@ -1,4 +1,54 @@
+import { useMemo } from "react";
 import styled from "styled-components";
+import { useGameContext } from "../../../hooks/useGameContext";
+
+const CaseBoard: React.FC = () => {
+  const { selectedCase } = useGameContext();
+  const cases = Array.from({ length: 26 }, (_, i) => i + 1);
+
+  const formatValue = (value: number) => {
+    return `$${value.toFixed(2)}`;
+  };
+
+  const onCaseClick = (caseNumber: number) => {
+    console.log(caseNumber);
+  };
+
+  const openedCases: any[] = [];
+  const caseValues = new Map<number, number>();
+
+  // Filter out selected case from the grid
+  const availableCases = useMemo(() => {
+    console.log(selectedCase);
+    return cases.filter((c) => c !== selectedCase);
+  }, [cases, selectedCase]);
+
+  return (
+    <CaseBoardContainer>
+      {availableCases.map((caseNumber) => {
+        const isOpened = openedCases.includes(caseNumber);
+        const value = caseValues?.get(caseNumber);
+
+        return (
+          <CaseBox
+            key={caseNumber}
+            $isOpened={isOpened}
+            onClick={() => onCaseClick?.(caseNumber)}
+          >
+            <LatchLeft />
+            <LatchRight />
+            <CaseNumber>{caseNumber}</CaseNumber>
+            {isOpened && value !== undefined && (
+              <CaseValue>{formatValue(value)}</CaseValue>
+            )}
+          </CaseBox>
+        );
+      })}
+    </CaseBoardContainer>
+  );
+};
+
+export default CaseBoard;
 
 const CaseBoardContainer = styled.div`
   display: grid;
@@ -135,51 +185,3 @@ const CaseValue = styled.span`
   margin-top: 5px;
   z-index: 1;
 `;
-
-interface CaseBoardProps {
-  selectedCase?: number;
-  openedCases?: number[];
-  caseValues?: Map<number, number>;
-  onCaseClick?: (caseNumber: number) => void;
-}
-
-const CaseBoard: React.FC<CaseBoardProps> = ({
-  selectedCase,
-  openedCases = [],
-  caseValues,
-  onCaseClick,
-}) => {
-  const cases = Array.from({ length: 26 }, (_, i) => i + 1);
-
-  const formatValue = (value: number) => {
-    return `$${value.toFixed(2)}`;
-  };
-
-  return (
-    <CaseBoardContainer>
-      {cases.map((caseNumber) => {
-        const isOpened = openedCases.includes(caseNumber);
-        const isSelected = selectedCase === caseNumber;
-        const value = caseValues?.get(caseNumber);
-
-        return (
-          <CaseBox
-            key={caseNumber}
-            $isSelected={isSelected}
-            $isOpened={isOpened}
-            onClick={() => onCaseClick?.(caseNumber)}
-          >
-            <LatchLeft />
-            <LatchRight />
-            <CaseNumber>{caseNumber}</CaseNumber>
-            {isOpened && value !== undefined && (
-              <CaseValue>{formatValue(value)}</CaseValue>
-            )}
-          </CaseBox>
-        );
-      })}
-    </CaseBoardContainer>
-  );
-};
-
-export default CaseBoard;

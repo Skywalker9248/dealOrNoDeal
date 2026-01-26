@@ -5,6 +5,7 @@ import CaseBoard from "../caseBoard";
 import BankerModal from "../bankerModal";
 import { useGameContext } from "../../../hooks/useGameContext";
 import CaseSelectionModal from "../caseSelectionModal";
+import SelectedCaseDisplay from "../selectedCaseDisplay";
 
 const GameContainer = () => {
   const { showBankerModal } = useGameContext();
@@ -18,7 +19,6 @@ const GameContainer = () => {
 
       <CenterPanel>
         <CaseBoard />
-        <PhoneIcon title="Call the Banker" />
         <CaseSelectionModal />
         {showBankerModal && (
           <BankerModal
@@ -27,6 +27,7 @@ const GameContainer = () => {
             onNoDeal={() => console.log("No deal!")}
           />
         )}
+        <SelectedCaseDisplay />
       </CenterPanel>
 
       <RightPanel>
@@ -76,29 +77,4 @@ const RightPanel = styled.div`
   align-items: flex-end;
   width: 20vw;
   padding-right: 10px;
-`;
-
-const PhoneIcon = styled.div`
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(180deg, #3a3a4a 0%, #2a2a3a 100%);
-  border: 2px solid #4a4a5a;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-
-  &:hover {
-    background: linear-gradient(180deg, #4a4a5a 0%, #3a3a4a 100%);
-    box-shadow: 0 0 15px rgba(255, 200, 0, 0.3);
-  }
-
-  &::before {
-    content: "📞";
-    font-size: 24px;
-  }
 `;
