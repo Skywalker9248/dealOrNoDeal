@@ -1,5 +1,5 @@
 import { GameContext } from "../context/gameContext";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { sessionApi } from "../src/api";
 import { GAME_STATE } from "../helpers/constants";
 import { transformSessionData } from "../helpers/utils";
@@ -89,6 +89,12 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
     getSession();
   }, []);
 
+  const openedCasesRef = useRef<number[]>([]);
+
+  useEffect(() => {
+    openedCasesRef.current = openedCases;
+  }, [openedCases]);
+
   // Socket connection and listeners
   useEffect(() => {
     if (!sessionId) return;
@@ -114,7 +120,7 @@ const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Find the newly opened case (the one that wasn't in openedCases before)
         const newlyOpened = openedCaseNumbers.find(
-          (num: number) => !openedCases.includes(num),
+          (num: number) => !openedCasesRef.current.includes(num),
         );
         if (newlyOpened) {
           setRecentlyOpenedCase(newlyOpened);
