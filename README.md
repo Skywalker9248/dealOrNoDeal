@@ -9,8 +9,6 @@ A fun, interactive web implementation of the classic TV game show **Deal or No D
 - [Installation](#installation)
 - [Running the Development Server](#running-the-development-server)
 - [Build for Production](#build-for-production)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
