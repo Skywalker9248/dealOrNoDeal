@@ -1,26 +1,60 @@
 require("dotenv").config();
 
-const express = require("express");
-const http = require("http");
+const { Hono } = require("hono");
+const { cors } = require("hono/cors");
+const { serve } = require("@hono/node-server");
 const { Server } = require("socket.io");
-const cors = require("cors");
+const { rateLimiter } = require("hono-rate-limiter");
 const sessionRoutes = require("./routes/sessionRoutes");
 const sessionController = require("./controllers/sessionController");
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+const ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL || "https://deal-or-no-deal-five.vercel.app",
+];
 
-app.use("/session", sessionRoutes);
-const server = http.createServer(app);
+const app = new Hono();
 
-const io = new Server(server, {
+app.use(
+  "*",
+  cors({
+    origin: ALLOWED_ORIGINS,
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["Content-Type"],
+    credentials: true,
+  }),
+);
+
+app.use(
+  "/session/create",
+  rateLimiter({
+    windowMs: 60_000,
+    limit: 10,
+    keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "unknown",
+    message: { error: "Too many sessions created. Please try again later." },
+  }),
+);
+
+app.onError((err, c) => {
+  console.error("Unhandled error:", err.message);
+  return c.json({ error: "Internal server error" }, 500);
+});
+
+app.notFound((c) => c.json({ error: "Route not found" }, 404));
+
+app.route("/session", sessionRoutes);
+
+const PORT = process.env.PORT || 3001;
+const httpServer = serve(
+  { fetch: app.fetch, port: PORT },
+  (info) => {
+    console.log(`SERVER RUNNING ON PORT ${info.port}`);
+  },
+);
+
+const io = new Server(httpServer, {
   cors: {
-    // Allow both localhost and the deployed frontend
-    origin: [
-      "http://localhost:5173",
-      process.env.FRONTEND_URL || "https://deal-or-no-deal-five.vercel.app",
-    ],
+    origin: ALLOWED_ORIGINS,
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -29,30 +63,25 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // Join a session channel/room
   socket.on("join_session", (sessionId) => {
     socket.join(sessionId);
     console.log(`Socket ${socket.id} joined session: ${sessionId}`);
 
-    // Send current session state to the newly joined client
     const currentSession = sessionController.getCurrentSession(sessionId);
     if (currentSession) {
       socket.emit("session_state", currentSession);
     }
   });
 
-  // Leave a session channel/room
   socket.on("leave_session", (sessionId) => {
     socket.leave(sessionId);
     console.log(`Socket ${socket.id} left session: ${sessionId}`);
   });
 
-  // Handle case opened event - broadcast to all in the session channel
   socket.on("case_opened", (data) => {
     const { sessionId, caseNumber } = data;
     const currentSession = sessionController.getCurrentSession(sessionId);
     if (currentSession) {
-      // Find the case by caseNumber and mark it as opened
       const caseToOpen = currentSession.cases.find(
         (c) => c.caseNumber === caseNumber,
       );
@@ -60,10 +89,8 @@ io.on("connection", (socket) => {
         caseToOpen.opened = true;
         console.log(`Case ${caseNumber} opened in session ${sessionId}`);
       }
-      // Broadcast to everyone in the session channel (including sender)
       io.to(sessionId).emit("case_opened", currentSession);
 
-      // Check if all 25 cases are opened (excluding selected case)
       const openedCount = currentSession.cases.filter((c) => c.opened).length;
       if (openedCount === 25) {
         const selectedCaseValue =
@@ -83,18 +110,14 @@ io.on("connection", (socket) => {
   socket.on("request_banker_offer", async (data) => {
     const { sessionId } = data;
     const offerData = await sessionController.getBankerOffer(sessionId);
-
     if (offerData) {
-      // Send the offer ONLY to the person who requested it
       io.to(sessionId).emit("banker_called", offerData);
     }
   });
 
-  // Handle deal accepted - user accepts banker's offer
   socket.on("deal_accepted", (data) => {
     const { sessionId, acceptedOffer } = data;
     const selectedCaseValue = sessionController.getSelectedCaseValue(sessionId);
-
     io.to(sessionId).emit("game_ended", {
       type: "deal_accepted",
       winnings: acceptedOffer,
@@ -106,9 +129,4 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
-});
-
-const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`SERVER RUNNING ON PORT ${PORT}`);
 });

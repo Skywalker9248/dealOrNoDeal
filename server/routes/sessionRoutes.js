@@ -1,10 +1,32 @@
-const express = require("express");
-const router = express.Router();
+const { Hono } = require("hono");
+const { zValidator } = require("@hono/zod-validator");
 const sessionController = require("../controllers/sessionController");
+const {
+  getSessionSchema,
+  updateCaseSchema,
+  deleteSessionSchema,
+} = require("../validators/sessionValidators");
 
-router.post("/create", sessionController.createSession);
-router.get("/get", sessionController.getSession);
-router.post("/updateSelectedCase", sessionController.updateSelectedCase);
-router.post("/delete", sessionController.deleteSession);
+const sessionRoutes = new Hono();
 
-module.exports = router;
+sessionRoutes.post("/create", sessionController.createSession);
+
+sessionRoutes.get(
+  "/get",
+  zValidator("query", getSessionSchema),
+  sessionController.getSession,
+);
+
+sessionRoutes.post(
+  "/updateSelectedCase",
+  zValidator("json", updateCaseSchema),
+  sessionController.updateSelectedCase,
+);
+
+sessionRoutes.post(
+  "/delete",
+  zValidator("json", deleteSessionSchema),
+  sessionController.deleteSession,
+);
+
+module.exports = sessionRoutes;
